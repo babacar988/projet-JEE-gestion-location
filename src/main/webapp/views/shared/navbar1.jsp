@@ -23,7 +23,7 @@
         <%-- Brand --%>
         <div class="sidenav-header align-items-center">
             <a class="navbar-brand" href="${pageContext.request.contextPath}/${userRole}/dashboard">
-                <img src="${pageContext.request.contextPath}/argon-assets/img/brand/blue.png"
+                <img src="${pageContext.request.contextPath}/argon-assets/img/brand/immogest_logo.svg"
                      class="navbar-brand-img" alt="ImmoGest">
             </a>
         </div>

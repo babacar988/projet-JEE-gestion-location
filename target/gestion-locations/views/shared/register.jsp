@@ -13,7 +13,7 @@
             <div class="header-body text-center mb-7">
                 <div class="row justify-content-center">
                     <div class="col-xl-5 col-lg-6 col-md-8 px-5">
-                        <img src="${pageContext.request.contextPath}/argon-assets/img/brand/white.png"
+                        <img src="${pageContext.request.contextPath}/argon-assets/img/brand/immogest_logo.svg"
                              style="height:48px;margin-bottom:20px" alt="ImmoGest">
                         <h1 class="text-white">Créer un compte</h1>
                         <p class="text-lead text-white">Rejoignez ImmoGest dès aujourd'hui</p>
