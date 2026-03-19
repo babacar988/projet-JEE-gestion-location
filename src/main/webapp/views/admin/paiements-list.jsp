@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" buffer="64kb" autoFlush="false" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" buffer="256kb" autoFlush="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <!DOCTYPE html><html>

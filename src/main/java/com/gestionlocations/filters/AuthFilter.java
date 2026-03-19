@@ -1,4 +1,5 @@
 package com.gestionlocations.filters;
+
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.*;
@@ -6,6 +7,7 @@ import java.io.IOException;
 
 @WebFilter(urlPatterns = {"/admin/*", "/proprietaire/*", "/locataire/*", "/profil"})
 public class AuthFilter implements Filter {
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
@@ -13,8 +15,8 @@ public class AuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
         HttpSession session = request.getSession(false);
 
+        // 1. Non connecté → login
         boolean isLoggedIn = session != null && session.getAttribute("utilisateur") != null;
-
         if (!isLoggedIn) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -24,7 +26,13 @@ public class AuthFilter implements Filter {
         String role = user.getRole().name().toLowerCase();
         String uri  = request.getRequestURI();
 
-        // Bloc accès par rôle
+        // 2. /profil → accessible par TOUS les rôles connectés
+        if (uri.endsWith("/profil")) {
+            chain.doFilter(req, res);
+            return;
+        }
+
+        // 3. Vérification des accès par rôle
         if (uri.contains("/admin/") && !role.equals("admin")) {
             response.sendRedirect(request.getContextPath() + "/" + role + "/dashboard");
             return;

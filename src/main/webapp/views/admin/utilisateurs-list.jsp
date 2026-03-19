@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" buffer="64kb" autoFlush="false" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" buffer="256kb" autoFlush="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html><html>
 <head><title>Utilisateurs — ImmoGest</title><jsp:include page="../shared/head.jsp"/></head>

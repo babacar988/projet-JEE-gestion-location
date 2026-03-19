@@ -228,7 +228,7 @@
         <ul class="navbar-nav">
           <li class="nav-item">
             <a class="nav-link ${param.page=='profil'?'active':''}"
-               href="${pageContext.request.contextPath}/admin/profil">
+               href="${pageContext.request.contextPath}/${userRole}/profil">
               <i class="ni ni-single-02 text-yellow"></i>
               <span class="nav-link-text">Mon profil</span>
             </a>
@@ -319,7 +319,7 @@
               <div class="dropdown-header noti-title">
                 <h6 class="text-overflow m-0">Bienvenue !</h6>
               </div>
-              <a href="${pageContext.request.contextPath}/profil" class="dropdown-item">
+              <a href="${pageContext.request.contextPath}/${userRole}/profil" class="dropdown-item">
                 <i class="ni ni-single-02"></i><span>Mon profil</span>
               </a>
               <div class="dropdown-divider"></div>

@@ -43,7 +43,6 @@ com\gestionlocations\services\ContratLocationService.class
 com\gestionlocations\entities\Immeuble$TypeImmeuble.class
 com\gestionlocations\entities\Paiement$ModePaiement.class
 com\gestionlocations\servlets\LoginServlet.class
-com\gestionlocations\filters\AuthFilter1.class
 com\gestionlocations\entities\UniteLocation.class
 com\gestionlocations\servlets\OffresServlet.class
 com\gestionlocations\filters\AuthFilter.class

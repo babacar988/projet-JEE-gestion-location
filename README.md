@@ -151,7 +151,7 @@ $TOMCAT_HOME\bin\startup.bat # Windows
 ### 6. Accéder à l'application
 
 ```
-http://localhost:8080/gestion-locations/
+http://localhost:8081/gestion-locations/
 ```
 
 ---
@@ -290,10 +290,4 @@ L'interface utilise un **design system** sur mesure :
 
 ---
 
-## 📄 Licence
 
-Projet développé dans le cadre d'un cours JEE — Usage éducatif.
-
----
-
-*Développé avec ❤️ en Jakarta EE · Hibernate · PostgreSQL*
