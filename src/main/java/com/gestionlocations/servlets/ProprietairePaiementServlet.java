@@ -1,7 +1,6 @@
 package com.gestionlocations.servlets;
 
-import com.gestionlocations.entities.Paiement;
-import com.gestionlocations.entities.Utilisateur;
+import com.gestionlocations.entities.*;
 import com.gestionlocations.services.ImmeubleService;
 import com.gestionlocations.services.PaiementService;
 import jakarta.servlet.ServletException;
@@ -15,26 +14,30 @@ import java.util.stream.Collectors;
 
 @WebServlet("/proprietaire/paiements")
 public class ProprietairePaiementServlet extends HttpServlet {
-    private final PaiementService  paiementService = new PaiementService();
-    private final ImmeubleService  immService       = new ImmeubleService();
+    private final PaiementService paiementService = new PaiementService();
+    private final ImmeubleService immService       = new ImmeubleService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         Utilisateur user = (Utilisateur) req.getSession().getAttribute("utilisateur");
+
         Set<Long> immIds = immService.findByProprietaire(user.getId())
-                                     .stream().map(i -> i.getId()).collect(Collectors.toSet());
-        List<Paiement> paiements = paiementService.findAll().stream()
-            .filter(p -> immIds.contains(p.getContrat().getUnite().getImmeuble().getId()))
-            .collect(Collectors.toList());
+                                     .stream().map(Immeuble::getId)
+                                     .collect(Collectors.toSet());
+
+        // JOIN FETCH complet — pas de LazyInit
+        List<Paiement> paiements = paiementService.findByImmeubles(immIds);
+
         BigDecimal total = paiements.stream()
             .filter(p -> p.getStatut() == Paiement.StatutPaiement.PAYE)
             .map(Paiement::getMontant)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        req.setAttribute("paiements",    paiements);
-        req.setAttribute("totalPaye",    total);
-        req.setAttribute("nbEnAttente",  paiements.stream().filter(p -> p.getStatut() == Paiement.StatutPaiement.EN_ATTENTE).count());
-        req.setAttribute("nbEnRetard",   paiements.stream().filter(p -> p.getStatut() == Paiement.StatutPaiement.EN_RETARD).count());
+
+        req.setAttribute("paiements",   paiements);
+        req.setAttribute("totalPaye",   total);
+        req.setAttribute("nbEnAttente", paiements.stream().filter(p -> p.getStatut() == Paiement.StatutPaiement.EN_ATTENTE).count());
+        req.setAttribute("nbEnRetard",  paiements.stream().filter(p -> p.getStatut() == Paiement.StatutPaiement.EN_RETARD).count());
         req.getRequestDispatcher("/views/proprietaire/paiements.jsp").forward(req, resp);
     }
 }

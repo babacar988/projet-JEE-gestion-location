@@ -1,82 +1,80 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" buffer="64kb" autoFlush="false" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8"><title>Immeubles — ImmoGest</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
-</head>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<!DOCTYPE html><html>
+<head><title>Immeubles — ImmoGest</title><jsp:include page="../shared/head.jsp"/></head>
 <body>
-<button class="mobile-menu-btn" onclick="toggleSidebar()">&#9776;</button>
-<div class="app-wrapper">
-  <jsp:include page="../shared/navbar.jsp"><jsp:param name="page" value="immeubles"/></jsp:include>
-  <div class="main-content">
-    <div class="topbar">
-      <h1 class="page-title">Immeubles</h1>
-      <div class="topbar-actions">
-        <a href="${pageContext.request.contextPath}/admin/immeubles?action=nouveau" class="btn btn-primary">+ Ajouter</a>
-        <button class="btn-logout-topbar" onclick="openLogoutModal()">Déconnexion</button>
-      </div>
-    </div>
-    <div class="page-content">
-      <c:choose>
-        <c:when test="${empty immeubles}">
-          <div class="card">
-            <div class="empty-state">
-              <div class="empty-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="4" y="2" width="16" height="20" rx="2"/>
-                  <path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>
-                </svg>
-              </div>
-              <div class="empty-title">Aucun immeuble enregistré</div>
-              <div class="empty-sub">Commencez par ajouter votre premier immeuble.</div>
-              <a href="${pageContext.request.contextPath}/admin/immeubles?action=nouveau" class="btn btn-primary">Ajouter un immeuble</a>
-            </div>
-          </div>
-        </c:when>
-        <c:otherwise>
-          <div class="property-grid">
-            <c:forEach var="imm" items="${immeubles}">
-              <div class="property-card">
-                <div class="property-card-image">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/></svg>
-                  <div class="property-card-badge">
-                    <span class="badge ${imm.actif ? 'badge-success' : 'badge-danger'}">
-                      <span class="badge-dot"></span>${imm.actif ? 'Actif' : 'Inactif'}
-                    </span>
-                  </div>
-                </div>
-                <div class="property-card-body">
-                  <div class="property-card-title">${imm.nom}</div>
-                  <div class="property-card-sub">${imm.adresse}, ${imm.ville}</div>
-                  <div class="property-card-meta">
-                    <span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                      ${imm.nombreUnites} unité(s)
-                    </span>
-                    <c:if test="${imm.nombreEtages != null}">
-                      <span>${imm.nombreEtages} étage(s)</span>
-                    </c:if>
-                    <span><span class="badge badge-navy" style="font-size:10.5px">${imm.type}</span></span>
-                  </div>
-                </div>
-                <div class="property-card-footer">
-                  <span style="font-size:12px;color:var(--text-muted)">${imm.ville} — ${imm.pays}</span>
-                  <div style="display:flex;gap:6px">
-                    <a href="${pageContext.request.contextPath}/admin/immeubles?action=modifier&id=${imm.id}" class="btn btn-outline btn-sm">Modifier</a>
-                    <a href="${pageContext.request.contextPath}/admin/immeubles?action=supprimer&id=${imm.id}" class="btn btn-danger btn-sm"
-                       onclick="return confirmDelete('Supprimer cet immeuble ?')">Suppr.</a>
-                  </div>
-                </div>
-              </div>
-            </c:forEach>
-          </div>
-        </c:otherwise>
-      </c:choose>
+<jsp:include page="../shared/navbar.jsp"><jsp:param name="page" value="immeubles"/></jsp:include>
+<div class="header bg-primary pb-6"><div class="container-fluid"><div class="header-body">
+  <div class="row align-items-center py-4">
+    <div class="col-lg-6 col-7"><h6 class="h2 text-white d-inline-block mb-0">Immeubles</h6></div>
+    <div class="col-lg-6 col-5 text-right">
+      <a href="${pageContext.request.contextPath}/admin/immeubles?action=nouveau" class="btn btn-sm btn-neutral">
+        <i class="ni ni-fat-add mr-1"></i>Ajouter
+      </a>
     </div>
   </div>
+</div></div></div>
+<div class="container-fluid mt--6">
+  <c:if test="${not empty error}"><div class="alert alert-danger">${error}</div></c:if>
+  <div class="card shadow">
+    <div class="card-header border-0">
+      <div class="row align-items-center">
+        <div class="col"><h3 class="mb-0">Liste des immeubles</h3></div>
+        <div class="col text-right"><span class="badge badge-primary badge-pill">${immeubles.size()} immeuble(s)</span></div>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-items-center table-flush">
+        <thead class="thead-light">
+        <tr><th>Nom</th><th>Adresse</th><th>Ville</th><th>Type</th><th>Unités</th><th>Propriétaire</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        <c:choose>
+          <c:when test="${empty immeubles}">
+            <tr><td colspan="8" class="text-center py-5 text-muted">Aucun immeuble enregistré</td></tr>
+          </c:when>
+          <c:otherwise>
+            <c:forEach var="imm" items="${immeubles}">
+              <tr>
+                <td class="font-weight-bold">${imm.nom}</td>
+                <td class="text-sm">${imm.adresse}</td>
+                <td class="text-sm">${imm.ville}<c:if test="${not empty imm.codePostal}"> (${imm.codePostal})</c:if></td>
+                <td><span class="badge badge-primary badge-pill">${imm.type}</span></td>
+                <td class="text-center font-weight-bold">${imm.nombreUnites}</td>
+                <td class="text-sm">
+                  <c:choose>
+                    <c:when test="${imm.proprietaire != null}">${imm.proprietaire.prenom} ${imm.proprietaire.nom}</c:when>
+                    <c:otherwise><span class="text-muted">—</span></c:otherwise>
+                  </c:choose>
+                </td>
+                <td>
+                  <c:choose>
+                    <c:when test="${imm.actif}"><span class="badge badge-success badge-pill">Actif</span></c:when>
+                    <c:otherwise><span class="badge badge-danger badge-pill">Inactif</span></c:otherwise>
+                  </c:choose>
+                </td>
+                <td>
+                  <a href="${pageContext.request.contextPath}/admin/immeubles?action=modifier&id=${imm.id}"
+                     class="btn btn-sm btn-outline-primary" title="Modifier">
+                    <i class="ni ni-settings"></i>
+                  </a>
+                  <a href="${pageContext.request.contextPath}/admin/immeubles?action=supprimer&id=${imm.id}"
+                     class="btn btn-sm btn-outline-danger" title="Supprimer"
+                     onclick="return confirm('Supprimer cet immeuble ?')">
+                    <i class="ni ni-fat-remove"></i>
+                  </a>
+                </td>
+              </tr>
+            </c:forEach>
+          </c:otherwise>
+        </c:choose>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <footer class="footer pt-0"><div class="row"><div class="col"><p class="text-muted text-sm">ImmoGest &copy; 2025</p></div></div></footer>
 </div>
-<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
-</body>
-</html>
+</div><!-- /.main-content -->
+<jsp:include page="../shared/scripts.jsp"/>
+</body></html>

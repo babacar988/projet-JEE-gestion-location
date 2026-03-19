@@ -5,6 +5,7 @@ import com.gestionlocations.entities.UniteLocation.StatutUnite;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class UniteLocationDAO extends GenericDAO<UniteLocation, Long> {
 
@@ -30,11 +31,9 @@ public class UniteLocationDAO extends GenericDAO<UniteLocation, Long> {
                 "SELECT DISTINCT u FROM UniteLocation u " +
                 "JOIN FETCH u.immeuble i " +
                 "LEFT JOIN FETCH i.proprietaire " +
-                "WHERE u.statut = :statut " +
-                "ORDER BY u.loyerMensuel",
+                "WHERE u.statut = :statut ORDER BY i.nom, u.numero",
                 UniteLocation.class
-            ).setParameter("statut", StatutUnite.DISPONIBLE)
-             .getResultList();
+            ).setParameter("statut", StatutUnite.DISPONIBLE).getResultList();
         } finally { em.close(); }
     }
 
@@ -42,7 +41,7 @@ public class UniteLocationDAO extends GenericDAO<UniteLocation, Long> {
         EntityManager em = getEM();
         try {
             return em.createQuery(
-                "SELECT u FROM UniteLocation u " +
+                "SELECT DISTINCT u FROM UniteLocation u " +
                 "JOIN FETCH u.immeuble " +
                 "WHERE u.immeuble.id = :iid ORDER BY u.numero",
                 UniteLocation.class
@@ -50,16 +49,30 @@ public class UniteLocationDAO extends GenericDAO<UniteLocation, Long> {
         } finally { em.close(); }
     }
 
-    public Optional<UniteLocation> findByIdWithImmeuble(Long id) {
+    /** Toutes les unités des immeubles d'un propriétaire — une seule requête */
+    public List<UniteLocation> findByProprietaire(Long proprietaireId) {
         EntityManager em = getEM();
         try {
-            List<UniteLocation> r = em.createQuery(
-                "SELECT u FROM UniteLocation u " +
-                "JOIN FETCH u.immeuble " +
-                "WHERE u.id = :id",
+            return em.createQuery(
+                "SELECT DISTINCT u FROM UniteLocation u " +
+                "JOIN FETCH u.immeuble i " +
+                "WHERE i.proprietaire.id = :pid ORDER BY i.nom, u.numero",
                 UniteLocation.class
-            ).setParameter("id", id).getResultList();
-            return r.isEmpty() ? Optional.empty() : Optional.of(r.get(0));
+            ).setParameter("pid", proprietaireId).getResultList();
+        } finally { em.close(); }
+    }
+
+    /** Toutes les unités d'un ensemble d'immeubles — pour filtres propriétaire */
+    public List<UniteLocation> findByImmeubles(Set<Long> immeubleIds) {
+        if (immeubleIds == null || immeubleIds.isEmpty()) return List.of();
+        EntityManager em = getEM();
+        try {
+            return em.createQuery(
+                "SELECT DISTINCT u FROM UniteLocation u " +
+                "JOIN FETCH u.immeuble i " +
+                "WHERE i.id IN :ids ORDER BY i.nom, u.numero",
+                UniteLocation.class
+            ).setParameter("ids", immeubleIds).getResultList();
         } finally { em.close(); }
     }
 
@@ -71,17 +84,31 @@ public class UniteLocationDAO extends GenericDAO<UniteLocation, Long> {
                 "JOIN FETCH u.immeuble i " +
                 "WHERE u.statut = :statut"
             );
-            if (maxLoyer  != null) jpql.append(" AND u.loyerMensuel <= :maxLoyer");
-            if (minPieces != null) jpql.append(" AND u.nombrePieces >= :minPieces");
-            if (ville != null && !ville.isEmpty()) jpql.append(" AND LOWER(i.ville) LIKE :ville");
+            if (maxLoyer   != null) jpql.append(" AND u.loyerMensuel <= :maxLoyer");
+            if (minPieces  != null) jpql.append(" AND u.nombrePieces >= :minPieces");
+            if (ville      != null && !ville.isBlank()) jpql.append(" AND LOWER(i.ville) LIKE :ville");
             jpql.append(" ORDER BY u.loyerMensuel");
 
-            var query = em.createQuery(jpql.toString(), UniteLocation.class)
-                          .setParameter("statut", StatutUnite.DISPONIBLE);
-            if (maxLoyer  != null) query.setParameter("maxLoyer",  maxLoyer);
-            if (minPieces != null) query.setParameter("minPieces", minPieces);
-            if (ville != null && !ville.isEmpty()) query.setParameter("ville", "%" + ville.toLowerCase() + "%");
-            return query.getResultList();
+            var q = em.createQuery(jpql.toString(), UniteLocation.class)
+                      .setParameter("statut", StatutUnite.DISPONIBLE);
+            if (maxLoyer  != null) q.setParameter("maxLoyer",  new java.math.BigDecimal(maxLoyer.toString()));
+            if (minPieces != null) q.setParameter("minPieces", minPieces);
+            if (ville     != null && !ville.isBlank()) q.setParameter("ville", "%" + ville.toLowerCase() + "%");
+            return q.getResultList();
+        } finally { em.close(); }
+    }
+
+    public Optional<UniteLocation> findByIdWithImmeuble(Long id) {
+        EntityManager em = getEM();
+        try {
+            List<UniteLocation> r = em.createQuery(
+                "SELECT DISTINCT u FROM UniteLocation u " +
+                "JOIN FETCH u.immeuble i " +
+                "LEFT JOIN FETCH i.proprietaire " +
+                "WHERE u.id = :id",
+                UniteLocation.class
+            ).setParameter("id", id).getResultList();
+            return r.isEmpty() ? Optional.empty() : Optional.of(r.get(0));
         } finally { em.close(); }
     }
 

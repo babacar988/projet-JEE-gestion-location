@@ -5,6 +5,7 @@ import com.gestionlocations.entities.ContratLocation.StatutContrat;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class ContratLocationDAO extends GenericDAO<ContratLocation, Long> {
 
@@ -18,7 +19,7 @@ public class ContratLocationDAO extends GenericDAO<ContratLocation, Long> {
                 "JOIN FETCH c.locataire " +
                 "JOIN FETCH c.unite u " +
                 "JOIN FETCH u.immeuble " +
-                "ORDER BY c.dateCreation DESC",
+                "ORDER BY c.dateDebut DESC",
                 ContratLocation.class
             ).getResultList();
         } finally { em.close(); }
@@ -32,25 +33,40 @@ public class ContratLocationDAO extends GenericDAO<ContratLocation, Long> {
                 "JOIN FETCH c.locataire " +
                 "JOIN FETCH c.unite u " +
                 "JOIN FETCH u.immeuble " +
-                "WHERE c.statut = :statut " +
-                "ORDER BY c.dateCreation DESC",
+                "WHERE c.statut = :statut ORDER BY c.dateDebut DESC",
                 ContratLocation.class
-            ).setParameter("statut", StatutContrat.ACTIF)
-             .getResultList();
+            ).setParameter("statut", StatutContrat.ACTIF).getResultList();
         } finally { em.close(); }
     }
 
+    /** Contrats d'un locataire donné */
     public List<ContratLocation> findByLocataire(Long locataireId) {
+        EntityManager em = getEM();
+        try {
+            return em.createQuery(
+                "SELECT DISTINCT c FROM ContratLocation c " +
+                "JOIN FETCH c.locataire l " +
+                "JOIN FETCH c.unite u " +
+                "JOIN FETCH u.immeuble " +
+                "WHERE l.id = :lid ORDER BY c.dateDebut DESC",
+                ContratLocation.class
+            ).setParameter("lid", locataireId).getResultList();
+        } finally { em.close(); }
+    }
+
+    /** Contrats filtrés par ensemble d'IDs d'immeubles (pour propriétaire) */
+    public List<ContratLocation> findByImmeubles(Set<Long> immeubleIds) {
+        if (immeubleIds == null || immeubleIds.isEmpty()) return List.of();
         EntityManager em = getEM();
         try {
             return em.createQuery(
                 "SELECT DISTINCT c FROM ContratLocation c " +
                 "JOIN FETCH c.locataire " +
                 "JOIN FETCH c.unite u " +
-                "JOIN FETCH u.immeuble " +
-                "WHERE c.locataire.id = :lid ORDER BY c.dateCreation DESC",
+                "JOIN FETCH u.immeuble i " +
+                "WHERE i.id IN :ids ORDER BY c.dateDebut DESC",
                 ContratLocation.class
-            ).setParameter("lid", locataireId).getResultList();
+            ).setParameter("ids", immeubleIds).getResultList();
         } finally { em.close(); }
     }
 
@@ -76,8 +92,7 @@ public class ContratLocationDAO extends GenericDAO<ContratLocation, Long> {
             return em.createQuery(
                 "SELECT COUNT(c) FROM ContratLocation c WHERE c.statut = :statut",
                 Long.class
-            ).setParameter("statut", StatutContrat.ACTIF)
-             .getSingleResult();
+            ).setParameter("statut", StatutContrat.ACTIF).getSingleResult();
         } finally { em.close(); }
     }
 }
